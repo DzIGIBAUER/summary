@@ -4,11 +4,14 @@ import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider, Session } from '@supabase/auth-helpers-react'
 import { useState } from 'react'
 import { NextUIProvider, createTheme } from '@nextui-org/react'
+import Navbar from "@/components/Navbar"
 
-import dynamic from 'next/dynamic'
+/**
+ * import dynamic from 'next/dynamic'
 const Navbar = dynamic(() => import("@/components/Navbar"), {
   ssr: false,
 });
+ */
 
 const darkTheme = createTheme({
   type: 'dark'

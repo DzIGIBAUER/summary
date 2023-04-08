@@ -1,5 +1,5 @@
 import { ChangeEvent, useState } from 'react'
-import { Card, Row, Text, Input, Button, FormElement, Spacer } from '@nextui-org/react'
+import { Card, Row, Text, Input, Button, FormElement, Spacer, Loading } from '@nextui-org/react'
 
 export default function Summary() {
 
@@ -64,7 +64,11 @@ export default function Summary() {
                 <Spacer y={1} />
 
                 <Row justify="center" align="center">
-                    {error ? <Text color="error">{ error }</Text> : <Text>{ loading ? "loading..." : summary }</Text>}
+                    {error ? (
+                        <Text color="error">{ error }</Text>
+                    ) : (
+                            loading ? <Loading type="points">Loading</Loading> : <Text>{ summary }</Text>
+                    )}
                 </Row>
             </Card.Body>
         </Card>
