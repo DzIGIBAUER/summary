@@ -19,7 +19,8 @@ const model = new OpenAI({ modelName: "gpt-3.5-turbo", temperature: 0 })
 const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000 })
 
 
-const applyMiddleware = middleware => (request, response) => {
+const applyMiddleware = (middleware: (arg0: any, arg1: any, arg2: (result //nextjs.org/docs/api-routes/introduction
+    : any) => void) => void) => (request: any, response: any) => {
   new Promise((resolve, reject) => {
     middleware(request, response, result =>
       result instanceof Error ? reject(result) : resolve(result)
@@ -32,8 +33,8 @@ const getId = async (req: NextApiRequest, res: NextApiResponse) => {
   const {
     data: { user },
   } = await supabaseServerClient.auth.getUser()
-  console.log(user.id)
-  return user.id
+  
+  return user!.id
 }
 
 export const getRateLimitMiddlewares = ({
@@ -45,7 +46,7 @@ export const getRateLimitMiddlewares = ({
 
 const middlewares = getRateLimitMiddlewares()
 
-async function applyRateLimit(request, response) {
+async function applyRateLimit(request: NextApiRequest, response: NextApiResponse) {
   await Promise.all(
     middlewares
       .map(applyMiddleware)
