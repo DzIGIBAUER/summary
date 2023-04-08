@@ -11,6 +11,7 @@ import { PuppeteerWebBaseLoader } from "langchain/document_loaders"
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
 import { loadSummarizationChain } from "langchain/chains"
 
+import chromium  from '@sparticuz/chromium-min';
 var { Readability } = require('@mozilla/readability');
 var { JSDOM } = require('jsdom');
 
@@ -95,7 +96,15 @@ export default async function handler(
     return
   }
 
-  let p = new PuppeteerWebBaseLoader(url, {gotoOptions: {waitUntil: 'networkidle2'}})
+
+  let p = new PuppeteerWebBaseLoader(url, {
+    gotoOptions: { waitUntil: 'networkidle2' },
+    launchOptions: {
+      args: chromium.args,
+      executablePath: await chromium.executablePath("https://github.com/Sparticuz/chromium/releases/download/v112.0.2/chromium-v112.0.2-pack.tar"),
+      headless: chromium.headless
+    }
+  })
 
 
   const dom = new JSDOM(await p.scrape())
