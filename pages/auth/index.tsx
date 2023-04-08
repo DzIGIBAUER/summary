@@ -1,45 +1,46 @@
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
-import { useEffect, useState } from 'react'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 import { Container } from '@nextui-org/react';
+import { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 'next';
 
-const LoginPage = () => {
+export default function LoginPage() {
   const supabaseClient = useSupabaseClient()
-  const user = useUser()
-  const [data, setData] = useState()
-
-  useEffect(() => {
-    async function loadData() {
-      //const { data } = await supabaseClient.from('test').select('*')
-      //setData(data)
-    }
-    // Only run query once user is logged in.
-    if (user) loadData()
-  }, [user])
-
-  if (!user)
-    return (
-      <Container xs>
-        <Auth
-          redirectTo="/"
-          appearance={{ theme: ThemeSupa }}
-          supabaseClient={supabaseClient}
-          providers={['google', 'github']}
-          socialLayout="vertical"
-        />
-      </Container>
-    )
 
   return (
-    <>
-      <button onClick={() => supabaseClient.auth.signOut()}>Sign out</button>
-      <p>user:</p>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
-      <p>client-side data fetching with RLS</p>
-    </>
+    <Container xs>
+      <Auth
+        redirectTo="/"
+        appearance={{ theme: ThemeSupa }}
+        supabaseClient={supabaseClient}
+        providers={['google', 'github']}
+        socialLayout="vertical"
+        dark={true}
+      />
+    </Container>
   )
 }
 
-export default LoginPage
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext | { req: NextApiRequest; res: NextApiResponse; }) => {
+  // Create authenticated Supabase Client
+  const supabase = createServerSupabaseClient(ctx)
+  // Check if we have a session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (session && session.user)
+    return {
+      redirect: {
+        destination: '/',
+        permanent: true
+      },
+    }
+  
+  return {
+    props: {}
+  }
+}

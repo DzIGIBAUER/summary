@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { useUser } from '@supabase/auth-helpers-react'
-import { Container, Card, Row, Col, Text, Input } from '@nextui-org/react'
+import { Container, Card, Col, Text, Link } from '@nextui-org/react'
 
 import Summary from '@/components/Summary'
 
@@ -45,7 +45,7 @@ export default function Home() {
                 <Text>Authenticatoin required</Text>
               </Card.Header>
               <Card.Body>
-                <Text>In order to use this service you need to log in first.</Text>
+                <Text>In order to use this service you need to <Link href='/auth'>log in</Link> first.</Text>
               </Card.Body>
             </Card>
           }
