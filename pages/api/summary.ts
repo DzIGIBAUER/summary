@@ -7,13 +7,19 @@ import urlExist from "url-exist"
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
 import { OpenAI } from "langchain"
-import { PuppeteerWebBaseLoader } from "langchain/document_loaders"
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter"
 import { loadSummarizationChain } from "langchain/chains"
 
-import chromium  from '@sparticuz/chromium-min';
+import { Puppeteer } from 'puppeteer-core'
 var { Readability } = require('@mozilla/readability');
 var { JSDOM } = require('jsdom');
+
+let puppeteer: Puppeteer
+
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+
+if (IS_PRODUCTION) puppeteer = await import('puppeteer-core')
+
 
 const model = new OpenAI({ modelName: "gpt-3.5-turbo", temperature: 0 })
 
@@ -54,6 +60,16 @@ async function applyRateLimit(request: NextApiRequest, response: NextApiResponse
       .map(middleware => middleware(request, response))
   )
 }
+
+
+const getBrowser = () =>
+  IS_PRODUCTION
+    ? // Connect to browserless so we don't run Chrome on the same hardware in production
+      puppeteer.connect({ browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_API_KEY}` })
+    : // Run the browser locally while in development
+      // @ts-ignore
+      puppeteer.launch()
+
 
 export default async function handler(
   req: NextApiRequest,
@@ -96,21 +112,33 @@ export default async function handler(
     return
   }
 
+  let browser
 
-  let p = new PuppeteerWebBaseLoader(url, {
-    gotoOptions: { waitUntil: 'networkidle2' },
-    launchOptions: {
-      args: chromium.args,
-      executablePath: await chromium.executablePath("https://github.com/Sparticuz/chromium/releases/download/v112.0.2/chromium-v112.0.2-pack.tar"),
-      headless: chromium.headless
+  let pageContent
+
+  try {
+    browser = await getBrowser();
+    const page = await browser.newPage();
+
+    await page.goto(url, {
+        waitUntil: "networkidle2"
+    });
+    
+    pageContent = await page.content()
+    
+  } catch (error) {
+    console.log(error)
+    res.status(400).send({ error: 'Could not load webpage data' });
+  } finally {
+    if (browser) {
+      browser.close();
     }
-  })
+  }
 
-
-  const dom = new JSDOM(await p.scrape())
-
-  const article = new Readability(dom.window.document).parse();
-
+  const dom = new JSDOM(pageContent)
+  
+  const article = new Readability(dom.window.document).parse()
+  
   if (!article.textContent) {
     res.status(400).send({ error: 'Could not load webpage data' })
     return
