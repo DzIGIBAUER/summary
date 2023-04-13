@@ -19,7 +19,7 @@ export default function LoginPage() {
       <Auth
         appearance={{ theme: ThemeSupa }}
         supabaseClient={supabaseClient}
-        providers={['google', 'github']}
+        providers={[]}
         socialLayout="vertical"
         dark={false}
       />
